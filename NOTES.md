@@ -14,5 +14,5 @@
 ## Session 3 (10/12/26)
 - Had Frank record session 3 (frank_s1)
 - Created the model training pipeline (train.py), which uses a standard MLP on 63 inputs with 2 hidden layers, which feed into 24 output nodes representing the 24 letters accounted for in the data
-![Confusion matrix for the current version of the model (MLP trained on 3 sessions of data)](file:///home/william/Downloads/asl-tutor-project/confusion_matrix.png) 
+![Confusion matrix for the current version of the model (MLP trained on 3 sessions of data)](/home/william/Downloads/asl-tutor-project/confusion_matrix_s3.png) 
 - At present, the mean accuracy is at 52.4% against a baseline of 62.1%. This is quite low, and more granular changes (possibly to the model architecture) will need to be made if this number does not improve after adding more diverse data
