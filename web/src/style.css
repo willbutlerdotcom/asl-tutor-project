@@ -35,7 +35,85 @@ main {
   height: 100%;
 }
 
+/* Outside .stage on purpose, so the letter isn't mirrored. */
+#prediction {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+#letter {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 1ch;
+  text-align: center;
+  color: #00e0a0;
+  transition: opacity 0.15s;
+}
+
+#letter.unsure {
+  opacity: 0.35;
+}
+
+#confidence {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
 #status {
   font-variant-numeric: tabular-nums;
   opacity: 0.8;
 }
+
+#tutor {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  transition: background-color 150ms;
+}
+#prompt { font-size: 18px; color: #666; }
+#target { font-size: 96px; font-weight: 700; line-height: 1.1; }
+
+#bar {
+  height: 10px;
+  background: #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+#bar-fill {
+  height: 100%;
+  background: #3b82f6;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 80ms linear;
+}
+
+/* Success flash */
+#tutor[data-phase="success"] { background: #dcfce7; }
+#tutor[data-phase="success"] #bar-fill { background: #16a34a; }
+#tutor[data-phase="success"] #target {
+  color: #16a34a;
+  animation: pop 300ms ease-out;
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);  /* 8 × 3 = 24 cells */
+  gap: 4px;
+  max-width: 360px;
+}
+.cell {
+  background: #eee;
+  border-radius: 6px;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 12px;
+}
+.cell-letter { display: block; font-weight: 700; font-size: 16px; }

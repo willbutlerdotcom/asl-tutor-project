@@ -21,3 +21,11 @@
 - Scaffolded the web page with Vite. It now runs locally, and shows the user their camera and their hand with the skeleton of landmarks on it. The coordinates of these landmarks are recorded and ready to be used.
 - The next step is to integrate the model with the webpage using the data already being collected
 - Additionally, a few more sessions of data collection will be necessary
+## Session 5 (10/23/26)
+- Ported the hand landmark normalization and the feed foward network from Python to TypeScript
+- Used a parity test to confirm that there were no functional differences between the code ported to TypeScript and the original Python code
+- The site now computes and displays the model's letter prediction (and confidence level) at every frame
+## Session 6 (10/26 - 10/27/26)
+- The site now records, stores, and displays user accuracy for each letter (in the form of the grid at the bottom of the screen) as well as score (number of correctly signed letters so far)
+- These accuracy stats can be reset using the Reset button
+- Also implemented a skip button, which allows the user to skip to the next random letter and records an accuracy of zero for the skipped letter

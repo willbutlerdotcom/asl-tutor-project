@@ -1,17 +1,26 @@
 import { DrawingUtils, FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import type { HandLandmarkerResult } from "@mediapipe/tasks-vision";
+import { normalize } from "./features";
+import { loadModel, predict, type ModelSpec, type Prediction } from "./mlp";
 import "./style.css";
+import { onFrame } from "./tutor";
+import { renderTutor, renderStats } from "./tutorView";
 
 const video = document.querySelector<HTMLVideoElement>("#webcam")!;
 const canvas = document.querySelector<HTMLCanvasElement>("#overlay")!;
 const statusEl = document.querySelector<HTMLDivElement>("#status")!;
+const letterEl = document.querySelector<HTMLSpanElement>("#letter")!;
+const confidenceEl = document.querySelector<HTMLSpanElement>("#confidence")!;
 const ctx = canvas.getContext("2d")!;
 const drawer = new DrawingUtils(ctx);
 
-// Served from public/: the wasm runtime is copied from node_modules,
-// the model is the same .task file the Python side uses.
-const WASM_PATH = "/wasm";
-const MODEL_PATH = "/hand_landmarker.task";
+const BASE = import.meta.env.BASE_URL;
+const WASM_PATH = `${BASE}wasm`;
+const MODEL_PATH = `${BASE}hand_landmarker.task`;
+const CLASSIFIER_PATH = `${BASE}model.json`;
+
+// Below this, the letter is shown dimmed: the model isn't sure.
+const SHOW_CONFIDENT = 0.5;
 
 async function createLandmarker(): Promise<HandLandmarker> {
   const vision = await FilesetResolver.forVisionTasks(WASM_PATH);
@@ -51,9 +60,31 @@ function draw(result: HandLandmarkerResult): void {
   }
 }
 
+/** Raw landmarks -> normalize() (stage 1) -> scaler + MLP (stage 2). Same path as Python. */
+function classify(result: HandLandmarkerResult, model: ModelSpec): Prediction | null {
+  const hand = result.landmarks[0];
+  const handed = result.handedness[0]?.[0];
+  if (!hand || !handed) return null;
+  // The image size must be the frame MediaPipe saw, not the on-screen size.
+  const x = normalize(hand, handed.categoryName, video.videoWidth, video.videoHeight);
+  return predict(model, x);
+}
+
+function showPrediction(p: Prediction | null): void {
+  if (!p) {
+    letterEl.textContent = "–";
+    confidenceEl.textContent = "show a hand";
+    letterEl.classList.add("unsure");
+    return;
+  }
+  letterEl.textContent = p.label;
+  confidenceEl.textContent = `${Math.round(p.confidence * 100)}%`;
+  letterEl.classList.toggle("unsure", p.confidence < SHOW_CONFIDENT);
+}
+
 async function main(): Promise<void> {
-  statusEl.textContent = "Loading model…";
-  const landmarker = await createLandmarker();
+  statusEl.textContent = "Loading models…";
+  const [landmarker, model] = await Promise.all([createLandmarker(), loadModel(CLASSIFIER_PATH)]);
   statusEl.textContent = "Starting camera…";
   await startCamera();
 
@@ -70,8 +101,12 @@ async function main(): Promise<void> {
       const result = landmarker.detectForVideo(video, performance.now());
       draw(result);
 
-      // Handy for poking at in DevTools: window.lastResult.landmarks[0]
+      const prediction = classify(result, model);
+      showPrediction(prediction);
+
+      // Handy for poking at in DevTools: lastResult.landmarks[0], lastPrediction.probs
       (window as any).lastResult = result;
+      (window as any).lastPrediction = prediction;
 
       frames++;
       const now = performance.now();
@@ -84,6 +119,9 @@ async function main(): Promise<void> {
       statusEl.textContent = hand
         ? `${fps.toFixed(0)} fps · hand detected (${hand.categoryName}, ${hand.score.toFixed(2)})`
         : `${fps.toFixed(0)} fps · no hand`;
+      onFrame(prediction?.label ?? null, prediction?.confidence ?? 0, now);
+      renderTutor(now);
+      renderStats();  
     }
     requestAnimationFrame(loop);
   };
