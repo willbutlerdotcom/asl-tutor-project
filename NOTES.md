@@ -29,3 +29,5 @@
 - The site now records, stores, and displays user accuracy for each letter (in the form of the grid at the bottom of the screen) as well as score (number of correctly signed letters so far)
 - These accuracy stats can be reset using the Reset button
 - Also implemented a skip button, which allows the user to skip to the next random letter and records an accuracy of zero for the skipped letter
+## Session 6.5 (10/28/26)
+- Deployed to Github Pages (the only error was a failure to direct the deployment file towards /web, where the project is actually located, but this was fixed quickly) 
